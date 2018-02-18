@@ -135,6 +135,7 @@ Clang-Tidy Checks
    misc-misplaced-widening-cast
    misc-new-delete-overloads
    misc-non-copyable-objects
+   misc-printf-define
    misc-redundant-expression
    misc-sizeof-container
    misc-sizeof-expression
