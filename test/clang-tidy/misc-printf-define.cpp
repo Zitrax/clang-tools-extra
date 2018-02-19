@@ -1,15 +1,16 @@
 // RUN: %check_clang_tidy %s misc-printf-define %t
 
-// FIXME: Add something that triggers the check here.
-printf("hello");
-// CHECK-MESSAGES: :[[@LINE-1]]:6: warning: function 'f' is insufficiently awesome [misc-printf-define]
-
-// FIXME: Verify the applied fix.
-//   * Make the CHECK patterns specific enough and try to make verified lines
-//     unique to avoid incorrect matches.
-//   * Use {{}} for regular expressions.
-// CHECK-FIXES: {{^}}printf("Hello");{{$}}
-
-// FIXME: Add something that doesn't trigger the check here.
-printf("Hello");
-
+void f(void) {
+  printf("hello");
+  // CHECK-MESSAGES: :[[@LINE-1]]:11: warning: printf string should start with capital letter [misc-printf-define]
+  // CHECK-FIXES: {{^  }}printf("Hello");{{$}}
+  #define LC "lc"
+  printf(LC);
+  // CHECK-MESSAGES: :[[@LINE-1]]:11: warning: printf string should start with capital letter [misc-printf-define]
+  // CHECK-FIXES: {{^  }}printf("Lc");{{$}}
+  printf(0);
+  printf("Message");
+  // FIXME: The below will currently fail since the FixItHint does not currently apply to defines
+  #define UC "UC"
+  printf(UC);
+}
