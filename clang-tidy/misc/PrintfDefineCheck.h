@@ -10,7 +10,9 @@
 #ifndef LLVM_CLANG_TOOLS_EXTRA_CLANG_TIDY_MISC_PRINTFDEFINECHECK_H
 #define LLVM_CLANG_TOOLS_EXTRA_CLANG_TIDY_MISC_PRINTFDEFINECHECK_H
 
-#include "../ClangTidy.h"
+#include "../ClangTidy.h"                     // for ClangTidyCheck
+#include "clang/ASTMatchers/ASTMatchFinder.h" // for MatchFinder
+#include "llvm/Support/ErrorHandling.h"       // for StringRef
 
 namespace clang {
 namespace tidy {

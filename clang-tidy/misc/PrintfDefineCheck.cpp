@@ -8,10 +8,10 @@
 //===----------------------------------------------------------------------===//
 
 #include "PrintfDefineCheck.h"
-#include "clang/AST/ASTContext.h"
-#include "clang/ASTMatchers/ASTMatchFinder.h"
-
-#include <locale>
+#include "clang/AST/ASTContext.h"             // for ASTContext
+#include "clang/AST/PrettyPrinter.h"          // for PrintingPolicy
+#include "clang/ASTMatchers/ASTMatchFinder.h" // for MatchFinder, MatchFind...
+#include "clang/Basic/IdentifierTable.h"      // for LangOptions
 
 using namespace clang::ast_matchers;
 
@@ -30,22 +30,27 @@ void PrintfDefineCheck::check(const MatchFinder::MatchResult &Result) {
   LangOpts.CPlusPlus = true;
   clang::PrintingPolicy Policy(LangOpts);
   const auto *Call = Result.Nodes.getNodeAs<CallExpr>("call");
+  SourceManager &srcMgr = Result.Context->getSourceManager();
 
   // FIXME: Maybe just check argument 1 ?
   for (const auto arg : Call->arguments()) {
-    // llvm::errs() << "argType: " << arg->getType().getAsString() << "\n";
-    // llvm::errs() << "stmtClass: " <<
-    // arg->IgnoreImpCasts()->getStmtClassName() << "\n";
-
     const auto *sl = dyn_cast<StringLiteral>(arg->IgnoreImpCasts());
     if (sl) {
       if (islower(sl->getString().str()[0])) {
         auto str = sl->getString().str();
         str[0] = toupper(sl->getString().str()[0], std::locale());
+
+        // If it's a macro, find where it's defined
+        SourceLocation StartLoc = arg->getLocStart();
+        if (StartLoc.isMacroID()) {
+          StartLoc = srcMgr.getSpellingLoc(StartLoc);
+        }
+
+        // FIXME: User appropriate range
         diag(arg->getExprLoc().getLocWithOffset(1),
              "printf string should start with capital letter")
-            << FixItHint::CreateReplacement(
-                   arg->getExprLoc().getLocWithOffset(1), str.c_str());
+            << FixItHint::CreateReplacement(StartLoc.getLocWithOffset(1),
+                                            str.c_str());
       }
     }
   }
